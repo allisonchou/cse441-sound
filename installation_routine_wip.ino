@@ -4,7 +4,9 @@
  * With help from my teammates, especially Peter, and the internet
  */
 
+
 #include <SoftwareSerial.h> 
+SoftwareSerial ESPserial(2, 3); // RX | TX
 
 #include <Adafruit_NeoPixel.h> //Adafruit NeoPixel LED library - for programming individual LED lights
 
@@ -15,6 +17,8 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800); // NeoPixel s
 
 #include <LiquidCrystal_I2C.h>
 #include <string.h>
+#include <SoftwareSerial.h>
+
 
 LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
@@ -31,7 +35,10 @@ int previous_cpi = 0;
 int input_first_stable_input_time = -1;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
+
+  //Start the software serial for communication with the ESP8266 component
+  ESPserial.begin(57600);  
   
   strip.begin();           // initialize NeoPixel strip object
   strip.show();            
@@ -44,6 +51,12 @@ void setup() {
 }
 
 void loop() {
+  /*
+  if (ESPserial.available()){
+    Serial.println("ESP available!!!");
+    Serial.println(ESPserial.read());
+  }
+  */
   
   inputMode();
   return;
@@ -146,26 +159,39 @@ void inputMode(){
   };
 
   int index = floor(cur_pm_input/205);
+  
   // done for each incoming sensor data pin
-
-  /*Gates 124 sensor pin*/
+  int gates124_nl;
+  int demo_nl;
   
-  //int gates124_nl = analogRead(A0);
-
-  /*RNG data alternative*/
-  int gates124_nl = 5;
-  
-  
-  int index_2;
-  if(gates124_nl > 3){
-    index_2 = 2;
+  /*Gates 124 sensor*/
+  if (ESPserial.available()){
+    //Serial.println("ESP available!!!");
+    gates124_nl = ESPserial.read() - 1;
   }
-  else{
-    index_2 = 0;
-  }
-  nl_data[index_2][0] = "Gates 124";
 
-  //copy this for the other sensors
+  // should work
+  for(int i = 0; i < 4; i++){
+    if (strcmp(nl_data[gates124_nl][i], "")){
+      nl_data[gates124_nl][0] = "Gates 124";
+      break;
+    }
+  }
+  
+  //nl_data[gates124_nl][0] = "Gates 124";
+
+  /*Demo sensor*/
+  if (ESPserial.available()){
+    //Serial.println("ESP available!!!");
+    demo_nl = ESPserial.read() - 1;
+  }
+
+  for(int i = 0; i < 4; i++){
+    if (strcmp(nl_data[demo_nl][i], "")){
+      nl_data[demo_nl][0] = "Demo";
+      break;
+    }
+  }
 
   
 
@@ -202,7 +228,7 @@ void inputMode(){
   
   strip.clear(); //clears all the lights (lights that were turned on and aren't turned on again then stay off)
 
-  Serial.println(cur_pm_input);
+  //Serial.println(cur_pm_input);
   
   int first_pixel_not_lit = floor(cur_pm_input/42);
   for(int i = 0; i < first_pixel_not_lit; i++){
