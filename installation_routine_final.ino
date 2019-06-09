@@ -21,14 +21,19 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800); // NeoPixel s
 
 LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
+/*Global variables (because continuous loop programming is ridiculous)*/
+
+int demo_nl;
+int gates124_nl;
+
 int idle_LCD_reducer = 16;
 int idle_LCD_cycler = 0;
-int input_LCD_cycler = 0;
-
-/*Global variables (because continuous loop programming is ridiculous)*/
 
 int idle_lights_reducer = 22;
 int idle_lights_cycler = 0;
+
+int input_LCD_cycler = 0;
+
 int previous_cpi = 0;
 
 int input_first_stable_input_time = -1;
@@ -47,6 +52,7 @@ void setup() {
   lcd.backlight();
 
   //pinMode(A5, OUTPUT); for intializing any LED lights on the building drawings
+  //pinMode(A4, OUTPUT);
 }
 
 void loop() {  
@@ -61,7 +67,7 @@ void idleLCD(){
   int framerate = 750;
   
   lcd.setCursor(0,0);
-  lcd.print(display_text_1); // first line never changes, ever in this mode
+  lcd.print(display_text_1); // first line of text never changes in input mode
 
   if( floor(millis() / framerate) > idle_LCD_cycler){
     lcd.clear();
@@ -86,6 +92,10 @@ void idleLCD(){
 void inputMode(){ 
 
   //digitalWrite(A5, HIGH); // any LED light
+
+  //digitalWrite(A4, HIGH); // any LED light
+
+  
   
   /*Detecting any inactivity*/
   int cur_pm_input = analogRead(A3); // ANALOG PIN 3
@@ -154,15 +164,14 @@ void inputMode(){
 
   
   /*Updating noise level data array from Gates 124 sensor*/
-  int gates124_nl;
+
   
   if (ESPserial.available()){
-    //Serial.println("ESP available!!!");
+    Serial.println("ESP available!!!");
     // If sensor reads 1 through 5, the data is stored as 0 through 4
     gates124_nl = ESPserial.read() - 1;
   }
   
-
   // iterates through entire row of gates' current noise level
   
   for(int i = 0; i < 4; i++){
@@ -176,13 +185,13 @@ void inputMode(){
 
   /*Updating noise level data array from demo sensor*/
 
-  int demo_nl;
+
+  
   if (ESPserial.available()){
-    //Serial.println("ESP available!!!");
+    Serial.println("ESP available!!!");
     demo_nl = ESPserial.read() - 1;
   }
-  
-  
+  // iterates through entire row of demo's current noise level
   for(int i = 0; i < 4; i++){
     if (nl_data[demo_nl][i] == '\0'){
       nl_data[demo_nl][i] = "Demo";
