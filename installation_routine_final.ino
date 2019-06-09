@@ -4,20 +4,19 @@
  * With help from my teammates, especially Peter, and the internet
  */
 
+/*Required Libraries*/
+
 #include <SoftwareSerial.h> 
 SoftwareSerial ESPserial(2, 3); // RX | TX
 
 #include <Adafruit_NeoPixel.h> //Adafruit NeoPixel LED library - for programming individual LED lights
-
 #define LED_PIN    6
 #define LED_COUNT 23
-
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800); // NeoPixel strip object
 
 #include <LiquidCrystal_I2C.h>
-#include <string.h>
-#include <SoftwareSerial.h>
 
+#include <string.h>
 
 LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
@@ -91,11 +90,10 @@ void idleLCD(){
 
 void inputMode(){ 
 
-  //digitalWrite(A5, HIGH); // any LED light
+  //digitalWrite(A5, HIGH); // any building LED light
 
-  //digitalWrite(A4, HIGH); // any LED light
-
-  
+  //digitalWrite(A4, HIGH); // any building LED light
+ 
   
   /*Detecting any inactivity*/
   int cur_pm_input = analogRead(A3); // ANALOG PIN 3
