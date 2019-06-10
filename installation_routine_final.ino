@@ -23,7 +23,7 @@ LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars
 /*Global variables (because continuous loop programming is ridiculous)*/
 
 int demo_nl;
-int gates124_nl;
+int allen_nl;
 
 int idle_LCD_reducer = 16;
 int idle_LCD_cycler = 0;
@@ -50,8 +50,8 @@ void setup() {
   lcd.init();  
   lcd.backlight();
 
-  //pinMode(A5, OUTPUT); for intializing any LED lights on the building drawings
-  //pinMode(A4, OUTPUT);
+  pinMode(8, OUTPUT); // gates (demo)
+  pinMode(9, OUTPUT); // allen 
 }
 
 void loop() {  
@@ -89,11 +89,9 @@ void idleLCD(){
 }
 
 void inputMode(){ 
-
-  //digitalWrite(A5, HIGH); // any building LED light
-
-  //digitalWrite(A4, HIGH); // any building LED light
- 
+  /*BUILDING LIGHTS TURNED OFF UNLESS OTHERWISE NOTED*/
+  digitalWrite(8, LOW); // Demo (Gates) sensor
+  digitalWrite(9, LOW); // Allen sensor
   
   /*Detecting any inactivity*/
   int cur_pm_input = analogRead(A3); // ANALOG PIN 3
@@ -156,26 +154,25 @@ void inputMode(){
   };
 
   int index = floor(cur_pm_input/205);
-
  
   // done for each incoming sensor data pin
 
   
-  /*Updating noise level data array from Gates 124 sensor*/
+  /*Updating noise level data array from Allen 003 sensor*/
 
   
   if (ESPserial.available()){
     Serial.println("ESP available!!!");
     // If sensor reads 1 through 5, the data is stored as 0 through 4
-    gates124_nl = ESPserial.read() - 1;
+    allen_nl = ESPserial.read() - 1;
   }
   
   // iterates through entire row of gates' current noise level
   
   for(int i = 0; i < 4; i++){
     // checks for the first empty space and places it there
-    if ((nl_data[gates124_nl][i] == '\0')){
-      nl_data[gates124_nl][i] = "Gates 124";
+    if ((nl_data[allen_nl][i] == '\0')){
+      nl_data[allen_nl][i] = "Allen 003";
       break;
     }
   }
@@ -184,7 +181,6 @@ void inputMode(){
   /*Updating noise level data array from demo sensor*/
 
 
-  
   if (ESPserial.available()){
     Serial.println("ESP available!!!");
     demo_nl = ESPserial.read() - 1;
@@ -224,6 +220,18 @@ void inputMode(){
       lcd.print(display_text_2);
       input_LCD_cycler = floor(millis() / framerate_lcd);
    }
+
+
+  /* BUILDING LIGHTS NOTED AND ON*/
+  
+  int blc = floor(cur_pm_input/205); //building lights (noise level) comparator
+  if (blc == demo_nl){
+    digitalWrite(8, HIGH); // Demo (Gates) sensor
+  }
+
+  if (blc == allen_nl){
+    digitalWrite(9, HIGH); // Allen sensor
+  }
 
   /*LED Input mode*/
   
